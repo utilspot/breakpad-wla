@@ -1,0 +1,994 @@
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --border: #dde1e6;
+  --text: #1b1f24;
+  --text-muted: #5f6875;
+  --accent: #d9480f;
+  --accent-soft: #fff0e8;
+  --link: #1c64d6;
+  --ok: #1f7a3d;
+  --ok-soft: #e3f5e9;
+  --warn: #8a5a00;
+  --warn-soft: #fff4d6;
+  --error: #b42318;
+  --error-soft: #fdecea;
+  --code-bg: #f6f8fa;
+  --mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121418;
+    --surface: #1a1d23;
+    --surface-2: #22262e;
+    --border: #2e333c;
+    --text: #e8ebf0;
+    --text-muted: #9aa3b0;
+    --accent: #ff7a3d;
+    --accent-soft: #3a2218;
+    --link: #7aa8ff;
+    --ok: #5cc98a;
+    --ok-soft: #173325;
+    --warn: #f0c060;
+    --warn-soft: #3a3016;
+    --error: #ff8a80;
+    --error-soft: #3d1f1d;
+    --code-bg: #15181d;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+a {
+  color: var(--link);
+}
+
+code,
+.mono {
+  font-family: var(--mono);
+  font-size: 0.92em;
+}
+
+h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.error {
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  background: var(--error-soft);
+  color: var(--error);
+}
+
+.success {
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.notice {
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  background: var(--warn-soft);
+  color: var(--text);
+}
+
+.empty {
+  padding: 1rem 0;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* ---- controls ---------------------------------------------------------- */
+
+button,
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+button:hover:not(:disabled),
+.button:hover {
+  border-color: var(--accent);
+}
+
+/* A square button holding only an icon; its name is in title / aria-label. */
+.icon-button {
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+}
+
+button[type='submit'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+button.danger,
+.button.danger {
+  color: var(--error);
+}
+
+.button-small {
+  padding: 0.2rem 0.55rem;
+  font-size: 0.85rem;
+}
+
+input[type='text'],
+input[type='url'],
+input[type='number'],
+input[type='password'],
+input[type='search'],
+select,
+textarea {
+  width: 100%;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+textarea {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0.5rem 0;
+  font-weight: 500;
+}
+
+.field .muted {
+  font-weight: 400;
+}
+
+.field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.field-row > .field {
+  flex: 1 1 12rem;
+}
+
+.field-row .grow,
+.grow {
+  flex: 3 1 20rem;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.inline-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.inline-field input {
+  width: 6rem;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin: 0.5rem 0;
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.segmented button {
+  border: 0;
+  border-radius: 0;
+  padding: 0.3rem 0.75rem;
+  background: var(--surface);
+}
+
+.segmented button + button {
+  border-left: 1px solid var(--border);
+}
+
+.segmented button.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.6;
+  vertical-align: middle;
+}
+
+.badge-ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.badge-warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.badge-error {
+  background: var(--error-soft);
+  color: var(--error);
+}
+
+.tool-output-header .badge {
+  margin-left: 0;
+}
+
+/* ---- layout ------------------------------------------------------------ */
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+  padding: 0.6rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+/* Back to the site's home page; shown only when served below the site root. */
+.home-button {
+  display: inline-flex;
+  /* Half the header's gap on each side, the same to the title and to the tabs. */
+  margin: 0 -0.75rem;
+  padding: 0.3rem;
+  border-radius: 6px;
+}
+
+.home-button:hover {
+  background: var(--surface-2);
+}
+
+.home-button img {
+  display: block;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.app-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.app-nav a {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.app-nav a:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.app-nav a.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.app-main {
+  padding: 1.25rem;
+}
+
+.page-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-body > section,
+.panel,
+.detail,
+.placeholder {
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.panel.inset {
+  border-style: dashed;
+  background: var(--bg);
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.two-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  align-items: start;
+  max-width: 1400px;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(18rem, 22rem) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.sidebar {
+  position: sticky;
+  top: 4.25rem;
+  display: flex;
+  flex-direction: column;
+  /* The full window height even with few items, so the footer sits at the bottom. */
+  height: calc(100vh - 5.5rem);
+  min-height: 0;
+  /* In a short window the whole sidebar scrolls instead of its parts overlapping. */
+  overflow-y: auto;
+  /* Room for focus outlines, which the scroll box would otherwise clip. */
+  margin: -3px;
+  padding: 3px;
+}
+
+/* Only the item list gives up height, and never below a few items. */
+.sidebar > * {
+  flex-shrink: 0;
+}
+
+.sidebar > .item-list {
+  flex-shrink: 1;
+  min-height: 8rem;
+}
+
+@media (max-width: 860px) {
+  .sidebar {
+    position: static;
+    height: auto;
+    overflow-y: visible;
+  }
+}
+
+/* Copyright line, pushed to the bottom of the sidebar however short the list is. */
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.list-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0.5rem;
+}
+
+.list-header h2,
+.list-header h3 {
+  margin: 0;
+}
+
+.dump-symbols {
+  margin-bottom: 1rem;
+}
+
+/* An element taking dropped symbol files while files are dragged over it. */
+.drop-active {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+  background: var(--accent-soft);
+}
+
+.list-header input[type='search'] {
+  flex: 1;
+  width: auto;
+  min-width: 10rem;
+}
+
+.item-list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.item-list a {
+  display: block;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.item-list a:hover,
+.item-list li:hover > a {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* Also beats `li:hover > a`, so the selected item keeps its colour while its × is hovered. */
+.item-list a.selected,
+.item-list li:hover > a.selected {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+/* A list item with a delete cross pinned to its top right corner. */
+.item-with-remove {
+  position: relative;
+}
+
+.item-with-remove > a {
+  padding-right: 2rem;
+}
+
+.item-remove {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  justify-content: center;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.item-remove:hover:not(:disabled) {
+  border-color: var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+/* On the selected item: its own orange, a shade darker. */
+.item-list a.selected + .item-remove:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent-soft), var(--accent) 18%);
+  color: var(--accent);
+}
+
+.item-title {
+  display: block;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-meta {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.item-list .badge {
+  margin-left: 0.4rem;
+}
+
+.placeholder p {
+  color: var(--text-muted);
+}
+
+/* ---- drop zone --------------------------------------------------------- */
+
+.dropzone {
+  position: relative;
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.dropzone.dragging {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.dropzone.disabled {
+  opacity: 0.7;
+}
+
+.dropzone label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+}
+
+.dropzone .muted {
+  font-size: 0.85rem;
+}
+
+.dropzone-action {
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.dropzone input[type='file'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.progress {
+  height: 4px;
+  margin: 0 1rem 0.75rem;
+  border-radius: 2px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.progress > div {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.1s;
+}
+
+/* The upload line while a dump and its symbol files go to the server. */
+.upload-progress {
+  margin: 0 0 0.75rem;
+}
+
+.upload-progress .progress {
+  margin: 0.35rem 0 0;
+}
+
+/* Uploaded; the server is working and there is no fraction to show. */
+.progress.indeterminate > div {
+  width: 30% !important;
+  animation: progress-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes progress-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(340%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress.indeterminate > div {
+    width: 100% !important;
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+/* ---- detail ------------------------------------------------------------ */
+
+.detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.detail-header h2 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.detail-header p {
+  margin: 0;
+}
+
+.actions,
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.row-actions {
+  justify-content: flex-end;
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  margin: 1rem 0;
+}
+
+.facts dt,
+.summary dt {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.facts dd,
+.summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabs button {
+  margin-bottom: -1px;
+  border: 1px solid transparent;
+  border-radius: 6px 6px 0 0;
+  background: none;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.tabs button.active {
+  border-color: var(--border);
+  border-bottom-color: var(--surface);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.detail .panel {
+  padding: 0.75rem 0 0;
+  border: 0;
+  border-radius: 0;
+}
+
+details > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+details.raw-output,
+details.modules {
+  margin: 0.75rem 0;
+}
+
+/* A button on the right of a <summary>; floated so the summary keeps its disclosure marker. */
+.summary-action {
+  float: right;
+  margin-bottom: 0.5rem;
+}
+
+/* The opened content starts below the floated button, not beside it. */
+details > summary ~ * {
+  clear: both;
+}
+
+/* ---- tables ------------------------------------------------------------ */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+td.num,
+th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+table.data td {
+  overflow-wrap: anywhere;
+  vertical-align: middle;
+}
+
+tr.expanded > td {
+  padding: 0.5rem 0 1rem;
+  background: none;
+}
+
+/* ---- stack trace ------------------------------------------------------- */
+
+.stackwalk {
+  margin-top: 0.5rem;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 2rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.summary dd.crash {
+  color: var(--error);
+  font-weight: 700;
+}
+
+.missing {
+  margin: 0.4rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.thread {
+  margin: 0.5rem 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.thread > summary {
+  padding: 0.45rem 0.75rem;
+  background: var(--surface-2);
+}
+
+.thread[open] > summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.frames {
+  font-size: 0.85rem;
+}
+
+.frames td {
+  border-bottom-color: var(--surface-2);
+}
+
+.frames tr:last-child td {
+  border-bottom: 0;
+}
+
+.frames .function {
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.frames tr.unsymbolized .function {
+  font-weight: 400;
+}
+
+.frames .source {
+  color: var(--link);
+  white-space: nowrap;
+}
+
+.modules table {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+/* ---- tool output ------------------------------------------------------- */
+
+.tool-output {
+  margin-top: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.tool-output-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.command {
+  flex: 1 1 20rem;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-output-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  background: var(--surface-2);
+}
+
+.tool-output .notice {
+  margin: 0;
+  border-radius: 0;
+}
+
+pre.output {
+  max-height: 65vh;
+  margin: 0;
+  padding: 0.75rem;
+  overflow: auto;
+  background: var(--code-bg);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  white-space: pre;
+  tab-size: 8;
+}
+
+/* A symbol file of any length: SymbolText renders only the lines in view. */
+.symbol-text {
+  max-height: 65vh;
+  padding: 0.75rem;
+  overflow: auto;
+  background: var(--code-bg);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+
+.symbol-text-space {
+  position: relative;
+}
+
+.symbol-text pre {
+  position: absolute;
+  top: 0;
+  left: 0;
+  min-width: 100%;
+  margin: 0;
+  font: inherit;
+  /* LINE_HEIGHT in SymbolText.tsx. */
+  line-height: 18px;
+  white-space: pre;
+  tab-size: 8;
+}
+
+/* ---- other pages ------------------------------------------------------- */
+
+.upload-outcome details {
+  margin-left: 0.75rem;
+}
+
+.microdump-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 1rem;
+}
+
+.microdump-input .or {
+  align-self: center;
+  color: var(--text-muted);
+}
+
+.microdump-file {
+  flex: 1 1 14rem;
+  align-self: center;
+}
+
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0 1rem;
+}
+
+.file-grid input[type='file'] {
+  font-size: 0.85rem;
+}
+
