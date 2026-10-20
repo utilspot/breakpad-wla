@@ -1,7 +1,6 @@
 import { withBase } from './base';
 import type {
   DumpSymsOptions,
-  ServiceInfo,
   StackwalkOptions,
   SymbolFile,
   ToolResult,
@@ -31,13 +30,6 @@ async function errorFrom(response: Response): Promise<ApiError> {
   return new ApiError(message, response.status, result);
 }
 
-/** `path` is app-relative (`/dump_syms`); the base URL prefix is added here. */
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(withBase(path), init);
-  if (!response.ok) throw await errorFrom(response);
-  return (await response.json()) as T;
-}
-
 /**
  * POSTs a form with upload progress, which fetch() cannot report.
  * `onProgress` receives a fraction between 0 and 1.
@@ -58,7 +50,9 @@ function postForm<T>(path: string, form: FormData, onProgress?: (fraction: numbe
       } catch {
         body = undefined;
       }
-      if (xhr.status >= 200 && xhr.status < 300 && body) {
+      // A 2xx answer still counts as a failure when it names an error or
+      // brings no result: some deployments answer errors with 200.
+      if (xhr.status >= 200 && xhr.status < 300 && body && !body.error && body.result) {
         resolve(body as T);
       } else {
         reject(new ApiError(body?.error ?? `Upload failed with status ${xhr.status}`, xhr.status, body?.result));
@@ -67,9 +61,6 @@ function postForm<T>(path: string, form: FormData, onProgress?: (fraction: numbe
     xhr.send(form);
   });
 }
-
-
-export const fetchServiceInfo = (signal?: AbortSignal) => request<ServiceInfo>('/api/tools', { signal });
 
 // ---- minidumps --------------------------------------------------------------
 //

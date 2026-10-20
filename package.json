@@ -1,6 +1,6 @@
 {
   "name": "breakpad-wla",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Minidump analysis, symbols and crash capture with the Breakpad tools",
   "license": "MIT",
   "type": "module",
@@ -21,7 +21,7 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^5.2.0",
-    "bitmake": "^0.0.1-develop.16",
+    "bitmake": "^0.0.1-develop.17",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "typescript": "^5.6.3",
