@@ -14,8 +14,10 @@ export interface CachedStackwalk {
   ran: number;
 }
 
+/** Entries without a result were cached from a failed run by older builds; they count as nothing cached. */
 export async function getCachedStackwalk(minidumpId: string): Promise<CachedStackwalk | null> {
-  return (await run<CachedStackwalk | undefined>(STACKWALKS, 'readonly', (store) => store.get(minidumpId))) ?? null;
+  const entry = await run<CachedStackwalk | undefined>(STACKWALKS, 'readonly', (store) => store.get(minidumpId));
+  return entry?.result ? entry : null;
 }
 
 export async function cacheStackwalk(entry: CachedStackwalk): Promise<void> {

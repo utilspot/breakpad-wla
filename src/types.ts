@@ -13,20 +13,6 @@ export interface ToolResult {
   stdoutTruncated: boolean;
 }
 
-export interface ToolInfo {
-  name: string;
-  description: string;
-  path: string;
-  available: boolean;
-}
-
-export interface ServiceInfo {
-  toolDir: string;
-  /** Where requests get their temporary job directories; nothing stays there. */
-  scratchDir: string;
-  tools: ToolInfo[];
-}
-
 /** A minidump kept in this browser; see minidumpStore.ts. */
 export interface Minidump {
   id: string;
