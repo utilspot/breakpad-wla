@@ -23,6 +23,8 @@ if(NOT BREAKPAD_ROOT_URL MATCHES "/$")
 endif()
 
 set(BREAKPAD_ASSETS_DIR "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}")
+set(BREAKPAD_TOOLS_DIR "" CACHE STRING "Absolute directory every Breakpad tool is run from (empty: the directory breakpad_wla.so is loaded from)")
+set(BREAKPAD_DATA_DIR "" CACHE STRING "Absolute directory owned by this service only; its tmp/ is emptied on start (empty: breakpad-data/ in the server's working directory)")
 
 set(BREAKPAD_SOURCES
   BreakpadBody.h

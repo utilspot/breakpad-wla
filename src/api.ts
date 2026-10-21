@@ -194,7 +194,10 @@ function postFormForFile(
     xhr.onerror = () => reject(new ApiError('Network error during upload', 0));
     xhr.onload = async () => {
       const blob = xhr.response as Blob;
-      if (xhr.status >= 200 && xhr.status < 300) {
+      // Files never come back as JSON, so a JSON answer is an error even with
+      // a 2xx status: some deployments answer errors with 200.
+      const isJson = /^application\/json\b/i.test(xhr.getResponseHeader('Content-Type') ?? '');
+      if (xhr.status >= 200 && xhr.status < 300 && !isJson) {
         const disposition = xhr.getResponseHeader('Content-Disposition') ?? '';
         resolve({ blob, filename: /filename="([^"]+)"/.exec(disposition)?.[1] ?? fallbackName });
         return;

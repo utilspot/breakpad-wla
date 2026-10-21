@@ -51,8 +51,7 @@ struct WebBreakpadExecutor {
 
 /* Header naming the file of a raw (non-multipart) upload. */
 #define HEADER_FILE_NAME "X-File-Name"
-/* Overrides where the service keeps minidumps and symbols. */
-#define DATA_DIR_ENV     "BREAKPAD_DATA_DIR"
+/* Data directory, in the server's working directory, when BREAKPAD_DATA_DIR is not set at build time. */
 #define DATA_DIR_DEFAULT "breakpad-data"
 
 typedef struct ApiRequest ApiRequest;
@@ -287,7 +286,7 @@ static int handleMinidumpStackwalk(WebBreakpadExecutor* breakpad, ApiRequest* ap
   size_t argc = 0;
   const char* format = jsonString(options, "format");
   args[argc++] = "-f";
-  args[argc++] = format != NULL && strcmp(format, "machine") == 0 ? "machine" : "human";
+  args[argc++] = format != NULL && NQStrcmp(format, "machine") == 0 ? "machine" : "human";
   if (jsonBool(options, "stack"))
     args[argc++] = "-s";
   if (jsonBool(options, "crashOnly"))
@@ -613,16 +612,16 @@ static int addRoutes(WebBreakpadExecutor* breakpad)
   return 0;
 }
 
-/* $BREAKPAD_DATA_DIR, or breakpad-data/ in the server's working directory. */
+/* BREAKPAD_DATA_DIR from the build, or breakpad-data/ in the server's working directory. */
 static int initStore(WebBreakpadExecutor* breakpad)
 {
+#ifdef BREAKPAD_DATA_DIR
+  return BreakpadStore_init(&breakpad->store, BREAKPAD_DATA_DIR);
+#else
   char dataDir[PATH_MAX];
-  const char* env = getenv(DATA_DIR_ENV);
-  if (env != NULL && env[0] != '\0')
-    NQSnprintf(dataDir, sizeof(dataDir), "%s", env);
-  else
-    NQSnprintf(dataDir, sizeof(dataDir), "%s/%s", NQWebServer_workDir(breakpad->executor.server), DATA_DIR_DEFAULT);
+  NQSnprintf(dataDir, sizeof(dataDir), "%s/%s", NQWebServer_workDir(breakpad->executor.server), DATA_DIR_DEFAULT);
   return BreakpadStore_init(&breakpad->store, dataDir);
+#endif
 }
 
 static int executorInit(NQWebExecutor* executor, void* data)
@@ -641,7 +640,11 @@ static int executorInit(NQWebExecutor* executor, void* data)
     NQLibraryInfoFinalize(&info);
     return -NQ_ENOMEM;
   }
+#ifdef BREAKPAD_TOOLS_DIR
+  breakpad->toolDir = NQPath_join1(BREAKPAD_TOOLS_DIR);
+#else
   breakpad->toolDir = NQPath_join2(info.filename, "..");
+#endif
   NQLibraryInfoFinalize(&info);
   if (breakpad->toolDir == NULL) {
     NQPath_destroy(manifest);
