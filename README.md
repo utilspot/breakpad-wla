@@ -43,17 +43,23 @@ and the server in `bin/`, next to the Breakpad tools, and the page in
 | CMake option | Default | |
 | --- | --- | --- |
 | `BREAKPAD_BASE_URL` | `/` | URL prefix the page and API are served under |
+| `BREAKPAD_TOOLS_DIR` | empty | Absolute directory all the Breakpad tools are run from; empty means the directory `breakpad_wla.so` is loaded from |
+| `BREAKPAD_DATA_DIR` | empty | Absolute data directory; empty means `breakpad-data/` in the server's working directory |
 | `BREAKPAD_INSTALL_SERVER` / `_MODULE` / `_ASSETS` | `ON` | What `install` copies |
 
 ### Where things live at run time
 
-- **Tools:** the directory `breakpad_wla.so` was loaded from.
+- **Tools:** `BREAKPAD_TOOLS_DIR` if the module was built with it, otherwise
+  the directory `breakpad_wla.so` was loaded from.
 - **Page:** `share/breakpad-wla/`, next to that directory. The module serves
   the files `manifest.json` lists there.
-- **Scratch space:** `tmp/` under `$BREAKPAD_DATA_DIR`, or under
-  `breakpad-data/` in the server's working directory. Each request gets its own
-  directory there, removed when the request ends; the whole of `tmp/` is emptied
-  on start. Nothing else is written.
+- **Scratch space:** `tmp/` under the `BREAKPAD_DATA_DIR` the module was built
+  with, or under `breakpad-data/` in the server's working directory. Each
+  request gets its own directory there, removed when the request ends; `tmp/`
+  is deleted on start, so the data directory must belong to this service alone.
+  Nothing else is written. Both directories are created by the first request
+  that stores a file, so they belong to the user that handles requests
+  (Apache's workers as `daemon`, say), even when the server starts as root.
 
 ```
 breakpad-data/tmp/job-XXXXXX/

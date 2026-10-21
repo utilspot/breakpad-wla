@@ -5,6 +5,7 @@
 #include <libnetq/Malloc.h>
 #include <libnetq/string/Sprintf.h>
 #include <libnetq/string/StringPrint.h>
+#include <libnetq/ErrorCode.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -102,20 +103,30 @@ static bool moveFile(const char* source, const char* target)
   return true;
 }
 
+/*
+ * Nothing is created here: tmp/ and the data directory are made by the first
+ * request that stores a file (BreakpadStore_makeJobDir), so they belong to the
+ * user that handles requests, not to a server that starts as root.
+ */
 int BreakpadStore_init(BreakpadStore* thiz, const char* dataDir)
 {
-  if (!makeDirs(dataDir))
-    return -errno;
-  if (realpath(dataDir, thiz->dataDir) == NULL)
-    return -errno;
+  if (dataDir[0] == '/') {
+    if (!formatPath(thiz->dataDir, sizeof(thiz->dataDir), "%s", dataDir))
+      return -ENAMETOOLONG;
+  }
+  else {
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) == NULL)
+      return -NQGetLastError();
+    if (!formatPath(thiz->dataDir, sizeof(thiz->dataDir), "%s/%s", cwd, dataDir))
+      return -ENAMETOOLONG;
+  }
 
   if (!formatPath(thiz->tmpDir, sizeof(thiz->tmpDir), "%s/tmp", thiz->dataDir))
     return -ENAMETOOLONG;
 
   // Scratch directories of requests cut short by a restart are of no use.
   BreakpadStore_removeTree(thiz->tmpDir);
-  if (!makeDirs(thiz->tmpDir))
-    return -errno;
   return 0;
 }
 
@@ -144,6 +155,13 @@ static bool isHexId(const char* id)
 
 bool BreakpadStore_makeJobDir(const BreakpadStore* thiz, char* path, size_t size)
 {
+  if (!formatPath(path, size, "%s/job-XXXXXX", thiz->tmpDir))
+    return false;
+  if (mkdtemp(path) != NULL)
+    return true;
+  // tmp/ may have been removed while running (a cleaner, a manual rm): make it again.
+  if (errno != ENOENT || !makeDirs(thiz->tmpDir))
+    return false;
   if (!formatPath(path, size, "%s/job-XXXXXX", thiz->tmpDir))
     return false;
   return mkdtemp(path) != NULL;

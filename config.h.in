@@ -1,5 +1,7 @@
 /* config.h.  Generated from config.h.in by CMake.  */
 
 #cmakedefine BREAKPAD_ASSETS_DIR  "@BREAKPAD_ASSETS_DIR@"
+#cmakedefine BREAKPAD_TOOLS_DIR   "@BREAKPAD_TOOLS_DIR@"
+#cmakedefine BREAKPAD_DATA_DIR    "@BREAKPAD_DATA_DIR@"
 #cmakedefine BREAKPAD_BASE_URL    "@BREAKPAD_BASE_URL@"
 #cmakedefine BREAKPAD_ROOT_URL    "@BREAKPAD_ROOT_URL@"

@@ -127,8 +127,11 @@ static bool startPart(BreakpadBody* thiz, const char* name, const char* filename
       ok = thiz->fd >= 0;
     }
     if (!ok) {
+      int error = errno;
+      char message[sizeof(thiz->error)];
+      NQSnprintf(message, sizeof(message), "Cannot store the uploaded file: %s", strerror(error));
       freePart(part);
-      setError(thiz, NQ_HTTP_INTERNAL_SERVER_ERROR, "Cannot store the uploaded file");
+      setError(thiz, NQ_HTTP_INTERNAL_SERVER_ERROR, message);
       return false;
     }
   }
