@@ -6,7 +6,7 @@ const environment = {};
 
 export default {
   "bundle:zlib": {
-    sourceUrl: "https://zlib.net/zlib-1.3.2.tar.gz",
+    sourceUrl: "https://www.zlib.net/fossils/zlib-1.3.2.tar.gz",
     action: "configure",
     variables: {
       prefix,

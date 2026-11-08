@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(breakpad-wla VERSION 1.0.0 LANGUAGES C)
+project(breakpad-wla VERSION 1.0.3 LANGUAGES C)
 
 include(GNUInstallDirs)
 
