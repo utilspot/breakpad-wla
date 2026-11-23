@@ -94,6 +94,27 @@ export default {
       CPPFLAGS: "-I" + destDir + prefix + "/include",
       LDFLAGS: "-L" + destDir + prefix + "/lib",
     },
+    // Breakpad installs libbreakpad.a (the processor) but neither the code of
+    // dump_syms, nor libdisasm (which the processor needs), nor the
+    // processor's public headers. The module links the three libraries
+    // statically, so they are packed from the build tree into the prefix.
+    postAction: {
+      action: "process",
+      command: "sh",
+      args: [
+        "-c",
+        [
+          "set -e",
+          "lib='" + destDir + prefix + "/lib'",
+          "include='" + destDir + prefix + "/include/breakpad'",
+          "rm -f \"$lib/libbreakpad_dump_syms.a\"",
+          "ar rcs \"$lib/libbreakpad_dump_syms.a\" src/common/tools_linux_dump_syms_dump_syms-*.o src/common/dwarf/tools_linux_dump_syms_dump_syms-*.o src/common/linux/tools_linux_dump_syms_dump_syms-*.o",
+          "cp src/third_party/libdisasm/libdisasm.a \"$lib/libdisasm.a\"",
+          "mkdir -p \"$include/google_breakpad/processor\"",
+          "cp ${bundle:breakpad.sourceDir}/src/google_breakpad/processor/*.h \"$include/google_breakpad/processor/\"",
+        ].join("\n"),
+      ],
+    },
     destDir,
   },
   "bundle:libnetq": {
