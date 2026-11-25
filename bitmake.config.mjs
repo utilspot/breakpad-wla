@@ -94,10 +94,6 @@ export default {
       CPPFLAGS: "-I" + destDir + prefix + "/include",
       LDFLAGS: "-L" + destDir + prefix + "/lib",
     },
-    // Breakpad installs libbreakpad.a (the processor) but neither the code of
-    // dump_syms, nor libdisasm (which the processor needs), nor the
-    // processor's public headers. The module links the three libraries
-    // statically, so they are packed from the build tree into the prefix.
     postAction: {
       action: "process",
       command: "sh",
@@ -118,7 +114,7 @@ export default {
     destDir,
   },
   "bundle:libnetq": {
-    sourceUrl: "https://github.com/libnetq/libnetq/archive/refs/heads/20261011_dev120.tar.gz",
+    sourceUrl: "https://github.com/libnetq/libnetq/archive/refs/tags/v1.2.0.tar.gz",
     action: "cmake",
     cacheVariables: {
       CMAKE_PREFIX_PATH: destDir + prefix,

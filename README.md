@@ -174,7 +174,7 @@ body.
 server.c                breakpad_server: loads the module on :8033
 module.c                the WLA module: page files from manifest.json, API routes
 BreakpadTool.c          runs a built-in tool, capturing its output for the response
-BreakpadBuiltin.cc      minidump_stackwalk, microdump_stackwalk and dump_syms as functions
+BreakpadBuiltin.cpp     minidump_stackwalk, microdump_stackwalk and dump_syms as functions
 BreakpadStdio.c         --wrap'ed stdio calls: Breakpad's stdout/stderr go to the request
 BreakpadStore.c         per-request scratch directories and the symbol file layout
 BreakpadBody.c          request bodies: multipart / JSON / raw, streamed to disk
@@ -193,6 +193,7 @@ public/                 favicon and logo_wla.svg (the card on the site's main pa
 tools/
   manifest-plugin.ts    writes dist/manifest.json, which the module serves the page from
   base-url.js           --base-url handling for vite.config.ts
+  clean.mjs             npm run clean: deletes build/, dist/, node_modules/ and breakpad-data/
 bitmake.config.mjs      builds zlib, OpenSSL, CivetWeb, Jansson, Breakpad, libnetq and this project
 docs/screenshot.png     the screenshot above
 ```
