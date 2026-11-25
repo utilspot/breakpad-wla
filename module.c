@@ -42,7 +42,6 @@ struct WebBreakpadExecutor {
   NQWebExecutor executor;
   NQWebManifestListeners manifestListeners;
   BreakpadStore store;
-  NQPath* toolDir;
   BreakpadApiRoute routes[BREAKPAD_API_ROUTE_COUNT];
   size_t routeCount;
 };
@@ -154,9 +153,9 @@ static int toolResponse(NQWebResponse* response, const BreakpadToolResult* resul
   return NQ_HTTP_OK;
 }
 
-static int runTool(WebBreakpadExecutor* breakpad, const char* tool, const char* const* args, const BreakpadToolOptions* options, BreakpadToolResult* result, NQWebResponse* response)
+static int runTool(const char* tool, const char* const* args, const BreakpadToolOptions* options, BreakpadToolResult* result, NQWebResponse* response)
 {
-  if (!BreakpadTool_run(NQPath_characters(breakpad->toolDir), tool, args, options, result)) {
+  if (!BreakpadTool_run(tool, args, options, result)) {
     BreakpadToolResult_finalize(result);
     return writeError(response, NQ_HTTP_INTERNAL_SERVER_ERROR, "Out of memory running the tool");
   }
@@ -267,6 +266,7 @@ static bool minidumpRequest(ApiRequest* api, NQWebResponse* response, BreakpadPa
 
 static int handleMinidumpStackwalk(WebBreakpadExecutor* breakpad, ApiRequest* api, NQWebRequest* request, NQWebResponse* response)
 {
+  NQ_UNUSED_PARAM(breakpad);
   NQ_UNUSED_PARAM(request);
 
   int status;
@@ -307,7 +307,7 @@ static int handleMinidumpStackwalk(WebBreakpadExecutor* breakpad, ApiRequest* ap
   args[argc] = NULL;
 
   BreakpadToolResult result;
-  status = runTool(breakpad, BREAKPAD_TOOL_MINIDUMP_STACKWALK, args, NULL, &result, response);
+  status = runTool(BREAKPAD_TOOL_MINIDUMP_STACKWALK, args, NULL, &result, response);
   NQJSON_release(options);
   if (status != 0)
     return status;
@@ -338,6 +338,7 @@ static bool isElfFile(const char* path)
  */
 static int handleSymbolDump(WebBreakpadExecutor* breakpad, ApiRequest* api, NQWebRequest* request, NQWebResponse* response)
 {
+  NQ_UNUSED_PARAM(breakpad);
   NQ_UNUSED_PARAM(request);
 
   BreakpadPart* binary = BreakpadBody_file(&api->body, "binary");
@@ -408,7 +409,7 @@ static int handleSymbolDump(WebBreakpadExecutor* breakpad, ApiRequest* api, NQWe
 
   BreakpadToolOptions toolOptions = { .stdoutFile = output };
   BreakpadToolResult result;
-  status = runTool(breakpad, BREAKPAD_TOOL_DUMP_SYMS, args, &toolOptions, &result, response);
+  status = runTool(BREAKPAD_TOOL_DUMP_SYMS, args, &toolOptions, &result, response);
   NQJSON_release(options);
   if (status != 0)
     return status;
@@ -447,6 +448,7 @@ static bool writeTextFile(const char* path, const char* text)
  */
 static int handleMicrodumpStackwalk(WebBreakpadExecutor* breakpad, ApiRequest* api, NQWebRequest* request, NQWebResponse* response)
 {
+  NQ_UNUSED_PARAM(breakpad);
   NQ_UNUSED_PARAM(request);
 
   int status;
@@ -509,7 +511,7 @@ static int handleMicrodumpStackwalk(WebBreakpadExecutor* breakpad, ApiRequest* a
   args[argc] = NULL;
 
   BreakpadToolResult result;
-  status = runTool(breakpad, BREAKPAD_TOOL_MICRODUMP_STACKWALK, args, NULL, &result, response);
+  status = runTool(BREAKPAD_TOOL_MICRODUMP_STACKWALK, args, NULL, &result, response);
   if (options)
     NQJSON_release(options);
   if (status != 0)
@@ -640,16 +642,7 @@ static int executorInit(NQWebExecutor* executor, void* data)
     NQLibraryInfoFinalize(&info);
     return -NQ_ENOMEM;
   }
-#ifdef BREAKPAD_TOOLS_DIR
-  breakpad->toolDir = NQPath_join1(BREAKPAD_TOOLS_DIR);
-#else
-  breakpad->toolDir = NQPath_join2(info.filename, "..");
-#endif
   NQLibraryInfoFinalize(&info);
-  if (breakpad->toolDir == NULL) {
-    NQPath_destroy(manifest);
-    return -NQ_ENOENT;
-  }
 
   ret = initStore(breakpad);
   if (ret != 0) {
@@ -688,6 +681,7 @@ static struct NQWebExecutorOperations s_executorOps = {
 
 static int moduleInit(NQContext* context)
 {
+  BreakpadBuiltin_initialize();
   NQWebExecutorRegister(&s_executorOps);
   return 0;
 }
@@ -695,6 +689,7 @@ static int moduleInit(NQContext* context)
 static void moduleExit(NQContext* context)
 {
   NQWebExecutorUnregister(&s_executorOps);
+  BreakpadBuiltin_terminate();
 }
 
 NQ_MODULE_INIT(moduleInit);

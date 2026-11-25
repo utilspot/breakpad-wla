@@ -94,10 +94,27 @@ export default {
       CPPFLAGS: "-I" + destDir + prefix + "/include",
       LDFLAGS: "-L" + destDir + prefix + "/lib",
     },
+    postAction: {
+      action: "process",
+      command: "sh",
+      args: [
+        "-c",
+        [
+          "set -e",
+          "lib='" + destDir + prefix + "/lib'",
+          "include='" + destDir + prefix + "/include/breakpad'",
+          "rm -f \"$lib/libbreakpad_dump_syms.a\"",
+          "ar rcs \"$lib/libbreakpad_dump_syms.a\" src/common/tools_linux_dump_syms_dump_syms-*.o src/common/dwarf/tools_linux_dump_syms_dump_syms-*.o src/common/linux/tools_linux_dump_syms_dump_syms-*.o",
+          "cp src/third_party/libdisasm/libdisasm.a \"$lib/libdisasm.a\"",
+          "mkdir -p \"$include/google_breakpad/processor\"",
+          "cp ${bundle:breakpad.sourceDir}/src/google_breakpad/processor/*.h \"$include/google_breakpad/processor/\"",
+        ].join("\n"),
+      ],
+    },
     destDir,
   },
   "bundle:libnetq": {
-    sourceUrl: "https://github.com/libnetq/libnetq/archive/refs/heads/20261011_dev120.tar.gz",
+    sourceUrl: "https://github.com/libnetq/libnetq/archive/refs/tags/v1.2.0.tar.gz",
     action: "cmake",
     cacheVariables: {
       CMAKE_PREFIX_PATH: destDir + prefix,

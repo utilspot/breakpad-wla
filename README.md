@@ -1,8 +1,8 @@
 # Breakpad
 
 A web page and service for working with [Breakpad](https://chromium.googlesource.com/breakpad/breakpad)
-minidumps. It is a libnetq WLA module (`breakpad_wla`) that runs the Breakpad
-tools built next to it, plus a React page that drives it.
+minidumps. It is a libnetq WLA module (`breakpad_wla`) with the Breakpad
+tools it needs compiled in, plus a React page that drives it.
 
 **The server keeps no user files.** Minidumps, their symbol files and their
 last stack walk are stored only in the user's browser (IndexedDB). Each
@@ -37,20 +37,28 @@ cd /some/work/dir && /path/to/build/package/bin/breakpad_server   # http://local
 The `bundle:output` step is a regular CMake project. Its library target runs
 `npm install` and `npm run build`, so the page in `dist/` is rebuilt whenever
 anything under `src/`, `public/` or `tools/` changes. Installing puts the module
-and the server in `bin/`, next to the Breakpad tools, and the page in
-`share/breakpad-wla/`.
+and the server in `bin/` and the page in `share/breakpad-wla/`.
+
+`minidump_stackwalk`, `microdump_stackwalk` and `dump_syms` are compiled into
+`breakpad_wla.so` and run in the server's process, on the thread handling the
+request: nothing is spawned and the Breakpad executables are not needed at run
+time. The module links three Breakpad static libraries from the install prefix:
+`libbreakpad.a` (the processor, installed by Breakpad), and
+`libbreakpad_dump_syms.a` and `libdisasm.a`, which `bundle:breakpad`'s
+`postAction` packs from Breakpad's build tree, together with the processor's
+public headers that Breakpad does not install. No Breakpad source is compiled
+here. The tools' stdout and stderr are caught at link time: the module is
+linked with `-Wl,--wrap` for each stdio call the libraries make, and the
+wrappers in `BreakpadStdio.c` send it to the request running the tool.
 
 | CMake option | Default | |
 | --- | --- | --- |
 | `BREAKPAD_BASE_URL` | `/` | URL prefix the page and API are served under |
-| `BREAKPAD_TOOLS_DIR` | empty | Absolute directory all the Breakpad tools are run from; empty means the directory `breakpad_wla.so` is loaded from |
 | `BREAKPAD_DATA_DIR` | empty | Absolute data directory; empty means `breakpad-data/` in the server's working directory |
 | `BREAKPAD_INSTALL_SERVER` / `_MODULE` / `_ASSETS` | `ON` | What `install` copies |
 
 ### Where things live at run time
 
-- **Tools:** `BREAKPAD_TOOLS_DIR` if the module was built with it, otherwise
-  the directory `breakpad_wla.so` was loaded from.
 - **Page:** `share/breakpad-wla/`, next to that directory. The module serves
   the files `manifest.json` lists there.
 - **Scratch space:** `tmp/` under the `BREAKPAD_DATA_DIR` the module was built
@@ -155,15 +163,19 @@ body.
   trace options and running again sends everything afresh. For large modules
   (a browser's libxul or Chromium: hundreds of MB of symbols) that makes every
   walk slow.
-- **Tool limits.** Each tool run has a 5 minute timeout. Captured output is cut
-  at 64 MB (stdout) and 4 MB (stderr).
+- **The tools run inside the server.** A stack walk or dump_syms holds its
+  request thread until it finishes; there is no timeout, and a Breakpad bug
+  hit by a malformed file takes the whole server down instead of one tool
+  process. Captured output is cut at 64 MB (stdout) and 4 MB (stderr).
 
 ## Layout
 
 ```
 server.c                breakpad_server: loads the module on :8033
 module.c                the WLA module: page files from manifest.json, API routes
-BreakpadTool.c          runs a tool (posix_spawn, captured output, timeout)
+BreakpadTool.c          runs a built-in tool, capturing its output for the response
+BreakpadBuiltin.cpp     minidump_stackwalk, microdump_stackwalk and dump_syms as functions
+BreakpadStdio.c         --wrap'ed stdio calls: Breakpad's stdout/stderr go to the request
 BreakpadStore.c         per-request scratch directories and the symbol file layout
 BreakpadBody.c          request bodies: multipart / JSON / raw, streamed to disk
 index.html, src/        the page (React + TypeScript)
@@ -181,6 +193,7 @@ public/                 favicon and logo_wla.svg (the card on the site's main pa
 tools/
   manifest-plugin.ts    writes dist/manifest.json, which the module serves the page from
   base-url.js           --base-url handling for vite.config.ts
+  clean.mjs             npm run clean: deletes build/, dist/, node_modules/ and breakpad-data/
 bitmake.config.mjs      builds zlib, OpenSSL, CivetWeb, Jansson, Breakpad, libnetq and this project
 docs/screenshot.png     the screenshot above
 ```

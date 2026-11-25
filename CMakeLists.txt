@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.8)
-project(breakpad-wla VERSION 1.0.3 LANGUAGES C)
+cmake_minimum_required(VERSION 3.18)
+project(breakpad-wla VERSION 1.1.0 LANGUAGES C CXX)
 
 include(GNUInstallDirs)
 
@@ -23,7 +23,25 @@ if(NOT BREAKPAD_ROOT_URL MATCHES "/$")
 endif()
 
 set(BREAKPAD_ASSETS_DIR "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}")
-set(BREAKPAD_TOOLS_DIR "" CACHE STRING "Absolute directory every Breakpad tool is run from (empty: the directory breakpad_wla.so is loaded from)")
+
+# Breakpad as static libraries, from the install prefix: libbreakpad.a (the
+# processor, with the stackwalk printing code), plus libbreakpad_dump_syms.a
+# and libdisasm.a, which bitmake.config.mjs packs from Breakpad's build tree
+# (Breakpad's own install leaves them out).
+find_path(BREAKPAD_INCLUDE_DIR google_breakpad/processor/minidump.h PATH_SUFFIXES breakpad REQUIRED)
+find_library(BREAKPAD_PROCESSOR_LIBRARY NAMES libbreakpad.a REQUIRED)
+find_library(BREAKPAD_DUMP_SYMS_LIBRARY NAMES libbreakpad_dump_syms.a REQUIRED)
+find_library(BREAKPAD_DISASM_LIBRARY NAMES libdisasm.a REQUIRED)
+find_package(ZLIB REQUIRED)
+
+# The stdio calls Breakpad's libraries print with; BreakpadStdio.c wraps each
+# so the output goes to the request running the tool.
+set(BREAKPAD_WRAPPED_STDIO
+  printf __printf_chk vprintf __vprintf_chk
+  fprintf __fprintf_chk vfprintf __vfprintf_chk
+  puts fputs putchar putc fputc fwrite
+  )
+
 set(BREAKPAD_DATA_DIR "" CACHE STRING "Absolute directory owned by this service only; its tmp/ is emptied on start (empty: breakpad-data/ in the server's working directory)")
 
 set(BREAKPAD_SOURCES
@@ -34,6 +52,9 @@ set(BREAKPAD_SOURCES
   BreakpadStore.c
   BreakpadTool.h
   BreakpadTool.c
+  BreakpadBuiltin.h
+  BreakpadBuiltin.cpp
+  BreakpadStdio.c
   module.c
   )
 
@@ -68,8 +89,22 @@ configure_file(config.h.in "${CMAKE_CURRENT_BINARY_DIR}/config.h" @ONLY)
 
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${BREAKPAD_SOURCES} ${BREAKPAD_DATAFILES} ${BREAKPAD_DISTFILES})
 add_library(breakpad_wla SHARED ${BREAKPAD_SOURCES} ${BREAKPAD_DATAFILES} ${BREAKPAD_DISTFILES})
-target_include_directories(breakpad_wla PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>")
-target_link_libraries(breakpad_wla PUBLIC LibNetQ::LibNetQ)
+target_include_directories(breakpad_wla PRIVATE
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+  "${BREAKPAD_INCLUDE_DIR}"
+  )
+target_compile_features(breakpad_wla PRIVATE cxx_std_17)
+target_link_libraries(breakpad_wla
+  PUBLIC LibNetQ::LibNetQ
+  PRIVATE ${BREAKPAD_DUMP_SYMS_LIBRARY} ${BREAKPAD_PROCESSOR_LIBRARY} ${BREAKPAD_DISASM_LIBRARY} ZLIB::ZLIB
+  )
+list(TRANSFORM BREAKPAD_WRAPPED_STDIO PREPEND "-Wl,--wrap=" OUTPUT_VARIABLE BREAKPAD_WRAP_OPTIONS)
+target_link_options(breakpad_wla PRIVATE ${BREAKPAD_WRAP_OPTIONS})
+if (UNIX AND NOT APPLE)
+  # Every Breakpad symbol the tools need must be in the module, not left for
+  # dlopen to miss; and none of the static libraries' symbols are exported.
+  target_link_options(breakpad_wla PRIVATE -Wl,--no-undefined -Wl,--exclude-libs,ALL)
+endif ()
 set_property(TARGET breakpad_wla PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_target_properties(breakpad_wla PROPERTIES PREFIX "" IMPORT_PREFIX "")
 
